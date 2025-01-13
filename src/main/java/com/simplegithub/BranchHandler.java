@@ -49,7 +49,8 @@ public class BranchHandler {
      * @throws IOException if the branch cannot be deleted
      */
     public void delete() throws IOException {
-        getBranch().delete();
+        String branchRef = "heads/" + branchName;
+        repository.getRef(branchRef).delete();
     }
 
     /**

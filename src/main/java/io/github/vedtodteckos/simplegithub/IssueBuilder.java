@@ -1,4 +1,4 @@
-package com.simplegithub;
+package io.github.vedtodteckos.simplegithub;
 
 import lombok.RequiredArgsConstructor;
 import org.kohsuke.github.GHIssue;

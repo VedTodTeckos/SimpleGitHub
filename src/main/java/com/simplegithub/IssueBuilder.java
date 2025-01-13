@@ -15,17 +15,6 @@ public class IssueBuilder {
     private final GHIssueBuilder issueBuilder;
 
     /**
-     * Sets the issue title.
-     *
-     * @param title Issue title
-     * @return this builder
-     */
-    public IssueBuilder title(String title) {
-        issueBuilder.title(title);
-        return this;
-    }
-
-    /**
      * Sets the issue body/description.
      *
      * @param body Issue body
@@ -43,7 +32,9 @@ public class IssueBuilder {
      * @return this builder
      */
     public IssueBuilder labels(String... labels) {
-        issueBuilder.label(labels);
+        for (String label : labels) {
+            issueBuilder.label(label);
+        }
         return this;
     }
 
@@ -55,20 +46,6 @@ public class IssueBuilder {
      */
     public IssueBuilder label(String label) {
         return labels(label);
-    }
-
-    /**
-     * Assigns the issue to specific users.
-     *
-     * @param assignees GitHub usernames of assignees
-     * @return this builder
-     */
-    public IssueBuilder assignees(String... assignees) {
-        issueBuilder.assignee(assignees[0]);
-        if (assignees.length > 1) {
-            issueBuilder.assignees(Arrays.copyOfRange(assignees, 1, assignees.length));
-        }
-        return this;
     }
 
     /**

@@ -26,9 +26,9 @@ public class RepositoryHandler {
      * @return IssueBuilder instance
      * @throws IOException if the repository cannot be accessed
      */
-    public IssueBuilder createIssue() throws IOException {
+    public IssueBuilder createIssue(String title) throws IOException {
         GHRepository repository = github.getRepository(owner + "/" + name);
-        return new IssueBuilder(repository.createIssue());
+        return new IssueBuilder(repository.createIssue(title));
     }
 
     /**

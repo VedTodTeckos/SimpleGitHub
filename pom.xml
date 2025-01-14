@@ -40,6 +40,8 @@
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <gson.version>2.10.1</gson.version>
+        <junit.version>5.10.1</junit.version>
+        <mockito.version>5.10.0</mockito.version>
     </properties>
 
     <dependencies>
@@ -69,7 +71,19 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.10.1</version>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -155,6 +169,13 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <!-- Surefire plugin for running tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.3</version>
             </plugin>
         </plugins>
     </build>

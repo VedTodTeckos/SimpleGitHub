@@ -1,6 +1,6 @@
 # SimpleGitHub
 
-A Java wrapper for the GitHub API that simplifies common GitHub operations. This library provides an easy-to-use interface for interacting with GitHub repositories, issues, pull requests, and more.
+A Java wrapper for the GitHub API that simplifies common GitHub operations. This library provides an easy-to-use interface for interacting with GitHub repositories, issues, pull requests, and more, with special support for GitHub Copilot management.
 
 ## Features
 - Simple and intuitive API
@@ -9,42 +9,51 @@ A Java wrapper for the GitHub API that simplifies common GitHub operations. This
 - Built on top of the official GitHub Java API
 - Comprehensive branch management
 - Issue tracking and management
+- GitHub Copilot management for organizations
+  - Seat allocation and management
+  - Usage metrics and analytics
+  - User access control
 
 ## Requirements
 - Java 17 or higher
 - Maven 3.6 or higher
+- GitHub Personal Access Token with appropriate scopes
 
-## Getting Started
+## Installation
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/SimpleGitHub.git
-```
-
-2. Build the project:
-```bash
-mvn clean install
-```
-
-3. Add the dependency to your project:
+### Maven
+Add the following dependency to your `pom.xml`:
 ```xml
 <dependency>
-    <groupId>com.simplegithub</groupId>
+    <groupId>io.github.vedtodteckos</groupId>
     <artifactId>simple-github</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.6.0</version>
 </dependency>
+```
+
+### Gradle
+Add the following to your `build.gradle`:
+```groovy
+implementation 'io.github.vedtodteckos:simple-github:0.6.0'
 ```
 
 ## Usage Examples
 
+### Initializing the Client
+```java
+// Create a client with your GitHub token
+SimpleGitHub github = SimpleGitHub.connect("your-github-token");
+```
+
 ### Working with Issues
 ```java
-SimpleGitHub github = SimpleGitHub.connect(yourGitHubToken);
+// Create a new issue
 github.repository("owner", "repo")
       .createIssue()
       .title("Bug Report")
       .body("Description of the bug")
       .label("bug")
+      .assignees("username1", "username2")
       .create();
 ```
 
@@ -71,61 +80,85 @@ boolean isProtected = branch.isProtected();
 branch.delete();
 ```
 
+### Managing GitHub Copilot
+```java
+// Get Copilot client
+GitHubRestClient copilotClient = new GitHubRestClient("your-github-token");
+
+// Get seat information
+CopilotSeatInfo seatInfo = copilotClient.getCopilotSeats("your-org");
+System.out.println("Used seats: " + seatInfo.getUsedSeats() + "/" + seatInfo.getTotalSeats());
+
+// Get usage metrics for the last 30 days
+LocalDateTime startDate = LocalDateTime.now().minusDays(30);
+LocalDateTime endDate = LocalDateTime.now();
+CopilotUsageMetrics metrics = copilotClient.getCopilotUsage("your-org", startDate, endDate);
+
+// Print daily metrics
+metrics.getDailyMetrics().forEach(daily -> {
+    System.out.printf("Date: %s, Active Users: %d, Lines Accepted: %d%n",
+            daily.getDate(), daily.getActiveUsers(), daily.getLinesAccepted());
+});
+
+// Manage user access
+String username = "developer";
+CopilotUserStatus status = copilotClient.getCopilotUserStatus("your-org", username);
+
+if (!status.isSeatAssigned()) {
+    copilotClient.assignCopilotSeat("your-org", username);
+}
+```
+
+## Error Handling
+The library uses checked exceptions for error handling. Most methods throw `IOException` for network-related issues or API errors. Example:
+
+```java
+try {
+    CopilotSeatInfo seatInfo = copilotClient.getCopilotSeats("your-org");
+} catch (IOException e) {
+    // Handle API errors, network issues, etc.
+    System.err.println("Error accessing GitHub API: " + e.getMessage());
+}
+```
+
+## Building from Source
+1. Clone the repository:
+```bash
+git clone https://github.com/vedtodteckos/SimpleGitHub.git
+```
+
+2. Build with Maven:
+```bash
+mvn clean install
+```
+
+## Running Tests
+The project includes comprehensive unit tests. Run them with:
+```bash
+mvn test
+```
+
+## Contributing
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
 ## Publishing to Maven Central
-
-To publish the library to Maven Central, follow these steps:
-
-1. Create a Sonatype OSSRH account at https://issues.sonatype.org/
-
-2. Configure your Maven settings.xml (usually in ~/.m2/settings.xml):
-```xml
-<settings>
-  <servers>
-    <server>
-      <id>ossrh</id>
-      <username>your-sonatype-username</username>
-      <password>your-sonatype-password</password>
-    </server>
-  </servers>
-  <profiles>
-    <profile>
-      <id>ossrh</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <properties>
-        <gpg.executable>gpg</gpg.executable>
-        <gpg.passphrase>your-gpg-passphrase</gpg.passphrase>
-      </properties>
-    </profile>
-  </profiles>
-</settings>
-```
-
-3. Generate and distribute your GPG key:
-```bash
-gpg --gen-key
-gpg --list-keys
-gpg --keyserver keyserver.ubuntu.com --send-keys YOUR_KEY_ID
-```
-
-4. Update the pom.xml with your information:
-   - Update the developer information
-   - Update the SCM information with your repository details
-   - Update the project URL
-
-5. Deploy a snapshot version:
-```bash
-mvn clean deploy
-```
-
-6. Deploy a release version:
-```bash
-mvn release:prepare
-mvn release:perform
-```
-
-The release will be automatically staged and released to Maven Central through the Nexus Staging plugin.
+See the [Publishing Guide](PUBLISHING.md) for detailed instructions on publishing new versions to Maven Central.
 
 ## License
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## API Documentation
+Full API documentation is available in the [Javadoc](https://vedtodteckos.github.io/SimpleGitHub/apidocs/).
+
+## Support
+- Create an issue in the [Issue Tracker](https://github.com/vedtodteckos/SimpleGitHub/issues)
+- Contact the maintainers at support@simplegithub.io
+
+## Acknowledgments
+- Built on top of the [GitHub API for Java](https://github-api.kohsuke.org/)
+- Uses [Gson](https://github.com/google/gson) for JSON processing
+- Uses [Project Lombok](https://projectlombok.org/) for reducing boilerplate code

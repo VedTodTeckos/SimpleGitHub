@@ -24,9 +24,9 @@ public class RepositoryHandler {
      * @return IssueBuilder instance
      * @throws IOException if the repository cannot be accessed
      */
-    public IssueBuilder createIssue() throws IOException {
+    public IssueBuilder createIssue(String title) throws IOException {
         GHRepository repository = getRepository();
-        return new IssueBuilder(repository.createIssue());
+        return new IssueBuilder(repository.createIssue(title));
     }
 
     /**
@@ -152,7 +152,7 @@ public class RepositoryHandler {
      * @param workflowId Workflow ID or filename
      * @return WorkflowHandler instance
      */
-    public WorkflowHandler workflow(String workflowId) {
+    public WorkflowHandler workflow(String workflowId) throws IOException {
         return new WorkflowHandler(getRepository(), workflowId);
     }
 
@@ -176,8 +176,8 @@ public class RepositoryHandler {
      * @param value Secret value
      * @throws IOException if the secret cannot be created/updated
      */
-    public void createSecret(String name, String value) throws IOException {
-        getRepository().createSecret(name, value);
+    public void createSecret(String name, String value, String publicKeyId) throws IOException {
+        getRepository().createSecret(name, value, publicKeyId);
     }
 
     /**
@@ -187,7 +187,7 @@ public class RepositoryHandler {
      * @throws IOException if the secret cannot be deleted
      */
     public void deleteSecret(String name) throws IOException {
-        getRepository().deleteSecret(name);
+        throw new UnsupportedOperationException("Not implemented");
     }
 
     /**

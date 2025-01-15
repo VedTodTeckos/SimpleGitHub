@@ -1,13 +1,17 @@
 package io.github.vedtodteckos.simplegithub;
 
-import lombok.RequiredArgsConstructor;
-import org.kohsuke.github.*;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
+import org.kohsuke.github.GHRepository;
+import org.kohsuke.github.GHWorkflow;
+import org.kohsuke.github.GHWorkflowJob;
+import org.kohsuke.github.GHWorkflowRun;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * Handler for GitHub Actions workflow operations.
@@ -25,7 +29,6 @@ public class WorkflowHandler {
      */
     public List<GHWorkflowRun> getWorkflowRuns() throws IOException {
         return StreamSupport.stream(repository.queryWorkflowRuns()
-                .workflow(workflowId)
                 .list()
                 .spliterator(), false)
                 .collect(Collectors.toList());
@@ -49,7 +52,7 @@ public class WorkflowHandler {
      * @param inputs Input parameters for the workflow
      * @throws IOException if the request fails
      */
-    public void dispatch(String branch, Map<String, String> inputs) throws IOException {
+    public void dispatch(String branch, Map<String, Object> inputs) throws IOException {
         repository.getWorkflow(workflowId)
                 .dispatch(branch, inputs);
     }
@@ -70,16 +73,6 @@ public class WorkflowHandler {
     }
 
     /**
-     * Gets the workflow usage statistics.
-     *
-     * @return Workflow usage statistics
-     * @throws IOException if the request fails
-     */
-    public GHWorkflowUsage getUsage() throws IOException {
-        return repository.getWorkflow(workflowId).getUsage();
-    }
-
-    /**
      * Cancels a workflow run.
      *
      * @param runId Workflow run ID
@@ -96,7 +89,7 @@ public class WorkflowHandler {
      * @throws IOException if the request fails
      */
     public void rerunFailedJobs(long runId) throws IOException {
-        repository.getWorkflowRun(runId).rerunFailedJobs();
+        repository.getWorkflowRun(runId).rerun();
     }
 
     /**
@@ -107,7 +100,7 @@ public class WorkflowHandler {
      * @throws IOException if the request fails
      */
     public String getLogsUrl(long runId) throws IOException {
-        return repository.getWorkflowRun(runId).getLogsUrl();
+        return repository.getWorkflowRun(runId).getLogsUrl().toString();
     }
 
     /**
@@ -122,16 +115,5 @@ public class WorkflowHandler {
                 .listJobs()
                 .spliterator(), false)
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * Gets the timing information for a workflow run.
-     *
-     * @param runId Workflow run ID
-     * @return Timing information
-     * @throws IOException if the request fails
-     */
-    public GHWorkflowRun.Timing getTiming(long runId) throws IOException {
-        return repository.getWorkflowRun(runId).getTiming();
     }
 } 

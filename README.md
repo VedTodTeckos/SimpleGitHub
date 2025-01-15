@@ -1,6 +1,6 @@
 # SimpleGitHub
 
-A Java wrapper for the GitHub API that simplifies common GitHub operations. This library provides an easy-to-use interface for interacting with GitHub repositories, issues, pull requests, and more, with special support for GitHub Copilot management.
+A Java wrapper for the GitHub API that simplifies common GitHub operations. This library provides an easy-to-use interface for interacting with GitHub repositories, issues, pull requests, and more, with special support for GitHub Copilot management and GitHub Actions.
 
 ## Features
 - Simple and intuitive API
@@ -9,6 +9,9 @@ A Java wrapper for the GitHub API that simplifies common GitHub operations. This
 - Built on top of the official GitHub Java API
 - Comprehensive branch management
 - Issue tracking and management
+- Pull request management and review
+- GitHub Actions workflow control
+- Repository secrets management
 - GitHub Copilot management for organizations
   - Seat allocation and management
   - Usage metrics and analytics
@@ -43,6 +46,78 @@ implementation 'io.github.vedtodteckos:simple-github:0.6.0'
 ```java
 // Create a client with your GitHub token
 SimpleGitHub github = SimpleGitHub.connect("your-github-token");
+```
+
+### Working with Pull Requests
+```java
+// Create a new pull request
+PullRequestHandler pr = github.repository("owner", "repo")
+    .createPullRequest(
+        "Feature: Add new functionality",
+        "feature-branch",
+        "main",
+        "Implements new features X, Y, and Z"
+    );
+
+// Request reviews
+pr.requestReviewers(List.of("reviewer1", "reviewer2"));
+
+// Add labels
+pr.addLabels("enhancement", "ready-for-review");
+
+// Get review comments
+List<GHPullRequestReviewComment> comments = pr.getReviewComments();
+
+// Add a review comment
+pr.createReviewComment(
+    "Consider using a different approach here",
+    "abc123", // commit SHA
+    "src/main/java/MyClass.java",
+    42 // line number
+);
+
+// Merge when ready
+pr.merge("Merging feature branch", GHPullRequest.MergeMethod.SQUASH);
+```
+
+### Managing GitHub Actions Workflows
+```java
+// Get a workflow handler
+WorkflowHandler workflow = github.repository("owner", "repo")
+    .workflow("ci.yml");
+
+// List all workflow runs
+List<GHWorkflowRun> runs = workflow.getWorkflowRuns();
+
+// Trigger a workflow
+Map<String, String> inputs = Map.of(
+    "environment", "production",
+    "debug", "true"
+);
+workflow.dispatch("main", inputs);
+
+// Get workflow jobs
+List<GHWorkflowJob> jobs = workflow.getJobs(12345); // run ID
+
+// Cancel a workflow run
+workflow.cancelRun(12345);
+
+// Re-run failed jobs
+workflow.rerunFailedJobs(12345);
+
+// Get workflow timing information
+GHWorkflowRun.Timing timing = workflow.getTiming(12345);
+```
+
+### Managing Repository Secrets
+```java
+RepositoryHandler repo = github.repository("owner", "repo");
+
+// Create or update a secret
+repo.createSecret("API_KEY", "secret-value");
+
+// Delete a secret
+repo.deleteSecret("OLD_API_KEY");
 ```
 
 ### Working with Issues
@@ -114,9 +189,9 @@ The library uses checked exceptions for error handling. Most methods throw `IOEx
 
 ```java
 try {
-    CopilotSeatInfo seatInfo = copilotClient.getCopilotSeats("your-org");
+    PullRequestHandler pr = repo.pullRequest(123);
+    pr.merge("Merging changes", GHPullRequest.MergeMethod.SQUASH);
 } catch (IOException e) {
-    // Handle API errors, network issues, etc.
     System.err.println("Error accessing GitHub API: " + e.getMessage());
 }
 ```

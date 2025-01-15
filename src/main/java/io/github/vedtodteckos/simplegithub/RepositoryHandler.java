@@ -1,15 +1,13 @@
 package io.github.vedtodteckos.simplegithub;
 
 import lombok.RequiredArgsConstructor;
-import org.kohsuke.github.GHBranch;
-import org.kohsuke.github.GHIssueBuilder;
-import org.kohsuke.github.GHRepository;
-import org.kohsuke.github.GitHub;
+import org.kohsuke.github.*;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Handles operations related to a specific GitHub repository.
@@ -26,9 +24,9 @@ public class RepositoryHandler {
      * @return IssueBuilder instance
      * @throws IOException if the repository cannot be accessed
      */
-    public IssueBuilder createIssue(String title) throws IOException {
-        GHRepository repository = github.getRepository(owner + "/" + name);
-        return new IssueBuilder(repository.createIssue(title));
+    public IssueBuilder createIssue() throws IOException {
+        GHRepository repository = getRepository();
+        return new IssueBuilder(repository.createIssue());
     }
 
     /**
@@ -38,7 +36,7 @@ public class RepositoryHandler {
      * @throws IOException if the repository cannot be accessed
      */
     public String getDescription() throws IOException {
-        return github.getRepository(owner + "/" + name).getDescription();
+        return getRepository().getDescription();
     }
 
     /**
@@ -48,7 +46,7 @@ public class RepositoryHandler {
      * @throws IOException if the repository cannot be accessed
      */
     public int getOpenIssuesCount() throws IOException {
-        return github.getRepository(owner + "/" + name).getOpenIssueCount();
+        return getRepository().getOpenIssueCount();
     }
 
     /**
@@ -58,7 +56,7 @@ public class RepositoryHandler {
      * @throws IOException if the repository cannot be accessed
      */
     public boolean isPrivate() throws IOException {
-        return github.getRepository(owner + "/" + name).isPrivate();
+        return getRepository().isPrivate();
     }
 
     /**
@@ -105,6 +103,91 @@ public class RepositoryHandler {
      */
     public String getDefaultBranch() throws IOException {
         return getRepository().getDefaultBranch();
+    }
+
+    /**
+     * Creates a new pull request.
+     *
+     * @param title Title of the pull request
+     * @param head Source branch
+     * @param base Target branch
+     * @param body Description of the pull request
+     * @return PullRequestHandler for the new pull request
+     * @throws IOException if the pull request cannot be created
+     */
+    public PullRequestHandler createPullRequest(String title, String head, String base, String body) throws IOException {
+        GHPullRequest pr = getRepository().createPullRequest(title, head, base, body);
+        return new PullRequestHandler(pr);
+    }
+
+    /**
+     * Gets a handler for an existing pull request.
+     *
+     * @param number Pull request number
+     * @return PullRequestHandler instance
+     * @throws IOException if the pull request cannot be accessed
+     */
+    public PullRequestHandler pullRequest(int number) throws IOException {
+        return new PullRequestHandler(getRepository().getPullRequest(number));
+    }
+
+    /**
+     * Lists all open pull requests.
+     *
+     * @return List of PullRequestHandler instances
+     * @throws IOException if the repository cannot be accessed
+     */
+    public List<PullRequestHandler> getOpenPullRequests() throws IOException {
+        return StreamSupport.stream(getRepository().queryPullRequests()
+                .state(GHIssueState.OPEN)
+                .list()
+                .spliterator(), false)
+                .map(PullRequestHandler::new)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Gets a handler for a GitHub Actions workflow.
+     *
+     * @param workflowId Workflow ID or filename
+     * @return WorkflowHandler instance
+     */
+    public WorkflowHandler workflow(String workflowId) {
+        return new WorkflowHandler(getRepository(), workflowId);
+    }
+
+    /**
+     * Lists all workflows in the repository.
+     *
+     * @return List of workflow IDs
+     * @throws IOException if the repository cannot be accessed
+     */
+    public List<String> getWorkflows() throws IOException {
+        return StreamSupport.stream(getRepository().listWorkflows().spliterator(), false)
+                .map(GHWorkflow::getId)
+                .map(String::valueOf)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Creates or updates a repository secret.
+     *
+     * @param name Secret name
+     * @param value Secret value
+     * @throws IOException if the secret cannot be created/updated
+     */
+    public void createSecret(String name, String value) throws IOException {
+        getRepository().createSecret(name, value);
+    }
+
+    /**
+     * Deletes a repository secret.
+     *
+     * @param name Secret name
+     * @throws IOException if the secret cannot be deleted
+     */
+    public void deleteSecret(String name) throws IOException {
+        getRepository().deleteSecret(name);
     }
 
     /**

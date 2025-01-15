@@ -1,20 +1,21 @@
 package io.github.vedtodteckos.simplegithub;
 
+import lombok.RequiredArgsConstructor;
+import org.kohsuke.github.*;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import org.kohsuke.github.GHRepository;
-import org.kohsuke.github.GHWorkflow;
-import org.kohsuke.github.GHWorkflowJob;
-import org.kohsuke.github.GHWorkflowRun;
-
-import lombok.RequiredArgsConstructor;
-
 /**
  * Handler for GitHub Actions workflow operations.
+ * This class provides methods for managing GitHub Actions workflows including:
+ * - Triggering workflow runs
+ * - Managing workflow state
+ * - Accessing workflow runs and jobs
+ * - Retrieving workflow logs and timing information
  */
 @RequiredArgsConstructor
 public class WorkflowHandler {
@@ -22,10 +23,11 @@ public class WorkflowHandler {
     private final String workflowId;
 
     /**
-     * Lists all workflow runs.
+     * Lists all runs of this workflow.
+     * The runs are returned in descending order by run number.
      *
      * @return List of workflow runs
-     * @throws IOException if the request fails
+     * @throws IOException if the GitHub API request fails
      */
     public List<GHWorkflowRun> getWorkflowRuns() throws IOException {
         return StreamSupport.stream(repository.queryWorkflowRuns()
@@ -35,10 +37,10 @@ public class WorkflowHandler {
     }
 
     /**
-     * Gets the latest workflow run.
+     * Gets the most recent run of this workflow.
      *
-     * @return Latest workflow run or null if none exists
-     * @throws IOException if the request fails
+     * @return The latest workflow run, or null if no runs exist
+     * @throws IOException if the GitHub API request fails
      */
     public GHWorkflowRun getLatestRun() throws IOException {
         List<GHWorkflowRun> runs = getWorkflowRuns();
@@ -46,11 +48,11 @@ public class WorkflowHandler {
     }
 
     /**
-     * Triggers a workflow run.
+     * Triggers a new workflow run.
      *
-     * @param branch Branch to run the workflow on
-     * @param inputs Input parameters for the workflow
-     * @throws IOException if the request fails
+     * @param branch The branch to run the workflow on
+     * @param inputs Map of input parameters for the workflow
+     * @throws IOException if the GitHub API request fails
      */
     public void dispatch(String branch, Map<String, Object> inputs) throws IOException {
         repository.getWorkflow(workflowId)
@@ -59,9 +61,10 @@ public class WorkflowHandler {
 
     /**
      * Enables or disables the workflow.
+     * Disabled workflows cannot be triggered manually or automatically.
      *
-     * @param enabled true to enable, false to disable
-     * @throws IOException if the request fails
+     * @param enabled true to enable the workflow, false to disable it
+     * @throws IOException if the GitHub API request fails
      */
     public void setEnabled(boolean enabled) throws IOException {
         GHWorkflow workflow = repository.getWorkflow(workflowId);
@@ -73,42 +76,43 @@ public class WorkflowHandler {
     }
 
     /**
-     * Cancels a workflow run.
+     * Cancels a running workflow run.
      *
-     * @param runId Workflow run ID
-     * @throws IOException if the request fails
+     * @param runId The ID of the workflow run to cancel
+     * @throws IOException if the GitHub API request fails or the run cannot be cancelled
      */
     public void cancelRun(long runId) throws IOException {
         repository.getWorkflowRun(runId).cancel();
     }
 
     /**
-     * Re-runs a failed workflow run.
+     * Re-runs all failed jobs in a workflow run.
      *
-     * @param runId Workflow run ID
-     * @throws IOException if the request fails
+     * @param runId The ID of the workflow run containing the failed jobs
+     * @throws IOException if the GitHub API request fails or the jobs cannot be re-run
      */
     public void rerunFailedJobs(long runId) throws IOException {
         repository.getWorkflowRun(runId).rerun();
     }
 
     /**
-     * Gets the logs URL for a workflow run.
+     * Gets the URL for downloading the logs of a workflow run.
      *
-     * @param runId Workflow run ID
-     * @return URL to download the logs
-     * @throws IOException if the request fails
+     * @param runId The ID of the workflow run
+     * @return URL string for downloading the logs
+     * @throws IOException if the GitHub API request fails
      */
     public String getLogsUrl(long runId) throws IOException {
         return repository.getWorkflowRun(runId).getLogsUrl().toString();
     }
 
     /**
-     * Gets the jobs for a workflow run.
+     * Gets all jobs from a specific workflow run.
+     * This includes both completed and in-progress jobs.
      *
-     * @param runId Workflow run ID
-     * @return List of jobs
-     * @throws IOException if the request fails
+     * @param runId The ID of the workflow run
+     * @return List of workflow jobs
+     * @throws IOException if the GitHub API request fails
      */
     public List<GHWorkflowJob> getJobs(long runId) throws IOException {
         return StreamSupport.stream(repository.getWorkflowRun(runId)
@@ -116,4 +120,5 @@ public class WorkflowHandler {
                 .spliterator(), false)
                 .collect(Collectors.toList());
     }
+
 } 

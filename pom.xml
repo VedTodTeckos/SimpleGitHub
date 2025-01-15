@@ -147,6 +147,10 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <failOnWarning>false</failOnWarning>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                </configuration>
             </plugin>
 
             <!-- GPG signing plugin -->

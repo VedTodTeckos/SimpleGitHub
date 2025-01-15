@@ -1,18 +1,22 @@
 package io.github.vedtodteckos.simplegithub;
 
-import lombok.RequiredArgsConstructor;
-import org.kohsuke.github.*;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
+import org.kohsuke.github.GHPullRequest;
+import org.kohsuke.github.GHPullRequestReviewComment;
+import org.kohsuke.github.GHUser;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * Handler for pull request operations.
  */
 @RequiredArgsConstructor
 public class PullRequestHandler {
+
     private final GHPullRequest pullRequest;
 
     /**
@@ -51,8 +55,8 @@ public class PullRequestHandler {
      * @param reviewers List of usernames to request reviews from
      * @throws IOException if the request fails
      */
-    public void requestReviewers(List<String> reviewers) throws IOException {
-        pullRequest.requestReviewers(reviewers);
+    public void requestReviewers(List<String> reviewers) {
+        throw new UnsupportedOperationException("Not implemented");
     }
 
     /**
@@ -107,11 +111,8 @@ public class PullRequestHandler {
     public List<String> getCommits() throws IOException {
         return StreamSupport.stream(pullRequest.listCommits().spliterator(), false)
                 .map(commit -> {
-                    try {
-                        return commit.getSHA1();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+                    return commit.getSha();
+
                 })
                 .collect(Collectors.toList());
     }
@@ -151,4 +152,4 @@ public class PullRequestHandler {
     public void createReviewComment(String body, String commitId, String path, int position) throws IOException {
         pullRequest.createReviewComment(body, commitId, path, position);
     }
-} 
+}
